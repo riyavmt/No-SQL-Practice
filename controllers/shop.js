@@ -1,6 +1,6 @@
 const mongodb = require("mongodb")
 const Product = require('../models/product');
-
+const User = require('../models/user');
 exports.getProducts = (req, res, next) => {
   Product.find() //Doesnt give a cursor but the product
     .then(products => {
