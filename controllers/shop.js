@@ -1,8 +1,10 @@
+const mongodb = require("mongodb")
 const Product = require('../models/product');
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find() //Doesnt give a cursor but the product
     .then(products => {
+      console.log(products)
       res.render('shop/product-list', {
         prods: products,
         pageTitle: 'All Products',
@@ -16,15 +18,6 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
 const prodId = req.params.productId;
-  // Product.findById({ where: { id: prodId } })
-  //   .then(products => {
-  //     res.render('shop/product-detail', {
-  //       product: products[0],
-  //       pageTitle: products[0].title,
-  //       path: '/products'
-  //     });
-  //   })
-  //   .catch(err => console.log(err));
   Product.findById(prodId)
     .then(product => {
       res.render('shop/product-detail', {
@@ -36,19 +29,19 @@ const prodId = req.params.productId;
     .catch(err => console.log(err));
 };
 
-// exports.getIndex = (req, res, next) => {
-//   Product.findAll()
-//     .then(products => {
-//       res.render('shop/index', {
-//         prods: products,
-//         pageTitle: 'Shop',
-//         path: '/'
-//       });
-//     })
-//     .catch(err => {
-//       console.log(err);
-//     });
-// };
+exports.getIndex = (req, res, next) => {
+  Product.find()
+    .then(products => {
+      res.render('shop/index', {
+        prods: products,
+        pageTitle: 'Shop',
+        path: '/'
+      });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
 
 exports.getCart = (req, res, next) => {
   req.user
