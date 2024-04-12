@@ -1,4 +1,5 @@
-const mongodb = require('mongodb')
+const mongodb = require('mongodb');
+const { get } = require('../routes/admin');
 const getDb = require('../util/database').getDb;
 
 class User{
@@ -71,6 +72,40 @@ class User{
       {_id:new mongodb.ObjectId(this._id)},
       {$set:{cart:{items : updatedCartItems}}}
     )
+  }
+
+  addOrder(){
+    const db = getDb();
+    return this.getCart()
+    .then(products =>{
+      const order ={
+        items : products,
+        user:{
+          _id: new mongodb.ObjectId(this._id),
+          name:this.name,
+          email:this.email
+        }
+      }
+      console.log('order created')
+      console.log(order);
+      return db.collection('orders').insertOne(order)
+    })
+    .then(result =>{
+      this.cart= {items:[]};
+      return db.collection('users').updateOne({
+          _id: new mongodb.ObjectId(this._id)
+        }, {$set:{cart:{items:[]}}})
+      .then(() => console.log('order placed'))
+      .catch(err=>console.log(err))
+      
+    })
+    .catch(err => console.log(err));
+  }
+  getOrders(){
+    const db = getDb();
+    //'' for giving path since orders have nested documents
+    return db.collection('orders').find({'user._id': new mongodb.ObjectId(this._id)}).toArray()
+    
   }
   static findById(userId){
     const db = getDb();
