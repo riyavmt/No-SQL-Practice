@@ -1,6 +1,7 @@
 const mongodb = require("mongodb")
 const Product = require('../models/product');
 const User = require('../models/user');
+const Order = require('../models/order')
 exports.getProducts = (req, res, next) => {
   Product.find() //Doesnt give a cursor but the product
     .then(products => {
@@ -82,19 +83,38 @@ exports.postCartDeleteProduct = (req, res, next) => {
     .catch(err => console.log(err));
 };
 
+
 exports.postOrder = (req, res, next) => {
-  let fetchedCart;
-  req.user
-    .addOrder()
-    .then(result => {
-      res.redirect('/orders');
+  req.user.populate('cart.items.productId')
+  .then(user =>{
+    const products = user.cart.items.map(i =>{
+      // console.log(i.productId._doc);
+      return {quantity:i.quantity , productData: {...i.productId._doc}}//productId has lot of metadata
+    });
+    
+    const order = new Order({
+      user:{
+        name:req.user.name,
+        userId:req.user
+      },
+      products: products
     })
-    .catch(err => console.log(err));
+    return order.save();
+
+  })
+  .then(result => {
+    return req.user.clearCart();
+   
+  })
+  .then(() => {
+    res.redirect('/orders');
+  })
+  .catch(err => console.log(err));
+    
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
+  Order.find({'user.userId':req.user._id})
     .then(orders => {
       res.render('shop/orders', {
         path: '/orders',
